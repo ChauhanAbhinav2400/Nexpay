@@ -11,7 +11,6 @@ export const useContacts = (walletAddress) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Fetch contacts
   const loadContacts = useCallback(async () => {
     if (!walletAddress) return;
     setIsLoading(true);
@@ -27,7 +26,6 @@ export const useContacts = (walletAddress) => {
     }
   }, [walletAddress]);
 
-  // Add new contact
   const addContact = useCallback(
     async (name, contactAddress) => {
       if (!walletAddress) return;
@@ -49,7 +47,6 @@ export const useContacts = (walletAddress) => {
     [walletAddress],
   );
 
-  // Update contact
   const editContact = useCallback(
     async (contactId, name, contactAddress) => {
       if (!walletAddress) return;
@@ -74,7 +71,6 @@ export const useContacts = (walletAddress) => {
     [walletAddress],
   );
 
-  // Delete contact
   const removeContact = useCallback(
     async (contactId) => {
       if (!walletAddress) return;

@@ -37,7 +37,7 @@ export const useChat = () => {
         params: [txHash],
       });
       if (receipt) return receipt;
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // poll every 2s
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     }
   };
 
@@ -131,14 +131,11 @@ export const useChat = () => {
         } else if (result.status === "needs_clarification") {
           let content = result.message;
 
-          // If agent returned raw JSON accidentally, show friendly message
           try {
             JSON.parse(content);
             content =
               "I understood your request but something went wrong processing it. Please try again.";
-          } catch {
-            // Not JSON, use as-is
-          }
+          } catch {}
 
           setMessages((prev) => [
             ...prev,
@@ -161,21 +158,17 @@ export const useChat = () => {
     [sessionId, walletType],
   );
 
-  // Replace the switch + setTimeout with this helper function
   const switchNetwork = async (provider, chainId) => {
     const chainIdHex = "0x" + chainId.toString(16);
 
-    // Check current network first
     const currentChainId = await provider.request({ method: "eth_chainId" });
     if (currentChainId === chainIdHex) return; // already on correct network
 
-    // Request switch
     await provider.request({
       method: "wallet_switchEthereumChain",
       params: [{ chainId: chainIdHex }],
     });
 
-    // Wait until network actually changes
     await new Promise((resolve) => {
       const check = setInterval(async () => {
         const current = await provider.request({ method: "eth_chainId" });
@@ -184,230 +177,13 @@ export const useChat = () => {
           resolve();
         }
       }, 500);
-      // Timeout after 30s
+
       setTimeout(() => {
         clearInterval(check);
         resolve();
       }, 30000);
     });
   };
-  // Signs with MetaMask and submits
-  // const signAndSubmit = useCallback(
-  //   async (walletAddress, transaction) => {
-  //     setIsLoading(true);
-  //     try {
-  //       const isSwap = transaction.mode === "swap";
-
-  //       let txHash;
-
-  //       console.log("Full transaction:", transaction);
-  //       console.log("swapRoute:", transaction.swapRoute);
-  //       const MAX_UINT256 =
-  //         "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
-
-  //       if (walletType === "privy") {
-  //         const privyWallet = wallets.find(
-  //           (w) => w.address.toLowerCase() === walletAddress.toLowerCase(),
-  //         );
-  //         if (!privyWallet) throw new Error("Privy wallet not found");
-  //         const provider = await privyWallet.getEthereumProvider();
-
-  //         await switchNetwork(provider, transaction.chainId);
-
-  //         await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  //         if (isSwap) {
-  //           // For ERC20 swaps, approve first
-  //           if (!transaction.swapRoute?.to) {
-  //             throw new Error("Swap route missing — please try again");
-  //           }
-  //           if (transaction.tokenSymbol !== "ETH") {
-  //             await provider.request({
-  //               method: "eth_sendTransaction",
-  //               params: [
-  //                 {
-  //                   from: walletAddress,
-  //                   to: transaction.swapRoute.tokenInAddress, // USDC contract
-  //                   data: encodeApproval(SWAP_ROUTER_ADDRESS, MAX_UINT256), // approve router
-  //                   value: "0x0",
-  //                   gas: "0xC350",
-  //                 },
-  //               ],
-  //             });
-  //           }
-  //           txHash = await provider.request({
-  //             method: "eth_sendTransaction",
-  //             params: [
-  //               {
-  //                 from: walletAddress,
-  //                 to: transaction.swapRoute.to,
-  //                 data: transaction.swapRoute.data,
-  //                 value:
-  //                   "0x" +
-  //                   BigInt(transaction.swapRoute.value || 0).toString(16),
-  //                 gas: "0x493E0",
-  //               },
-  //             ],
-  //           });
-  //         } else {
-  //           // Regular transfer
-  //           txHash = await provider.request({
-  //             method: "eth_sendTransaction",
-  //             params: [
-  //               {
-  //                 from: walletAddress,
-  //                 to: transaction.toAddress,
-  //                 value:
-  //                   "0x" +
-  //                   BigInt(
-  //                     Math.round(parseFloat(transaction.amountHuman) * 1e18),
-  //                   ).toString(16),
-  //                 data: "0x",
-  //               },
-  //             ],
-  //           });
-  //         }
-  //         await waitForTransaction(provider, txHash);
-  //       } else {
-  //         // MetaMask
-  //         const provider = window.ethereum;
-  //         if (!provider) throw new Error("MetaMask not found");
-
-  //         await switchNetwork(provider, transaction.chainId);
-
-  //         if (isSwap) {
-  //           if (!transaction.swapRoute?.to) {
-  //             throw new Error("Swap route missing — please try again");
-  //           }
-
-  //           const toAddr = transaction.swapRoute?.to;
-  //           console.log("to address length:", toAddr?.length, "value:", toAddr);
-
-  //           // Normalize address
-  //           const normalizedTo = toAddr?.trim();
-  //           if (!normalizedTo || normalizedTo.length !== 42) {
-  //             throw new Error(`Invalid swap router address: ${normalizedTo}`);
-  //           }
-
-  //           if (transaction.tokenSymbol !== "ETH") {
-  //             await provider.request({
-  //               method: "eth_sendTransaction",
-  //               params: [
-  //                 {
-  //                   from: walletAddress,
-  //                   to: transaction.swapRoute.tokenInAddress,
-  //                   data: encodeApproval(SWAP_ROUTER_ADDRESS, MAX_UINT256),
-  //                   value: "0x0",
-  //                   gas: "0xC350",
-  //                 },
-  //               ],
-  //             });
-  //           }
-
-  //           txHash = await provider.request({
-  //             method: "eth_sendTransaction",
-  //             params: [
-  //               {
-  //                 from: walletAddress,
-  //                 to: normalizedTo, // use normalized
-  //                 data: transaction.swapRoute.data,
-  //                 value:
-  //                   "0x" +
-  //                   BigInt(transaction.swapRoute.value || 0).toString(16),
-  //                 gas: "0x493E0",
-  //               },
-  //             ],
-  //           });
-
-  //           await waitForTransaction(provider, txHash);
-  //           // txHash = await provider.request({
-  //           //   method: "eth_sendTransaction",
-  //           //   params: [
-  //           //     {
-  //           //       from: walletAddress,
-  //           //       to: transaction.swapRoute.to,
-  //           //       data: transaction.swapRoute.data,
-  //           //       value:
-  //           //         "0x" +
-  //           //         BigInt(transaction.swapRoute.value || 0).toString(16),
-  //           //     },
-  //           //   ],
-  //           // });
-  //         } else {
-  //           const isNativeToken = (symbol) =>
-  //             ["ETH", "WETH"].includes(symbol.toUpperCase()) ||
-  //             symbol.toLowerCase().includes("eth");
-
-  //           txHash = await provider.request({
-  //             method: "eth_sendTransaction",
-  //             params: [
-  //               {
-  //                 from: walletAddress,
-  //                 to: transaction.toAddress,
-  //                 value: isNativeToken(transaction.tokenSymbol)
-  //                   ? "0x" +
-  //                     BigInt(
-  //                       Math.round(parseFloat(transaction.amountHuman) * 1e18),
-  //                     ).toString(16)
-  //                   : "0x0",
-  //                 data: "0x",
-  //                 chainId: "0x" + transaction.chainId.toString(16),
-  //               },
-  //             ],
-  //           });
-  //         }
-  //       }
-
-  //       await confirmTransactionApi(transaction.id, txHash);
-  //       setChatStatus("success");
-  //       setMessages((prev) => [
-  //         ...prev,
-  //         {
-  //           id: uuidv4(),
-  //           role: "agent",
-  //           content: `✅ Swap successful!\nTxHash: ${txHash}`,
-  //           timestamp: new Date().toISOString(),
-  //         },
-  //       ]);
-  //       setCurrentTransaction(null);
-  //     } catch (err) {
-  //       const userRejected =
-  //         err?.code === 4001 ||
-  //         err?.message?.toLowerCase().includes("user rejected") ||
-  //         err?.message?.toLowerCase().includes("user denied") ||
-  //         err?.message?.toLowerCase().includes("cancelled");
-  //       console.error("Full error:", JSON.stringify(err, null, 2));
-  //       console.error("Error code:", err?.code);
-  //       console.error("Error message:", err?.message);
-  //       console.error("Error data:", err?.data);
-
-  //       const message = userRejected
-  //         ? "Transaction cancelled. No funds were moved. Start a new message whenever you're ready."
-  //         : `❌ Transaction failed: ${err instanceof Error ? err.message : "Unknown error"}`;
-
-  //       setChatStatus(userRejected ? "idle" : "failed");
-  //       setCurrentTransaction(null);
-  //       await saveChatMessageApi(
-  //         walletAddress,
-  //         "agent",
-  //         message,
-  //         transaction.sessionId,
-  //       );
-  //       setMessages((prev) => [
-  //         ...prev,
-  //         {
-  //           id: uuidv4(),
-  //           role: "agent",
-  //           content: message,
-  //           timestamp: new Date().toISOString(),
-  //         },
-  //       ]);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   },
-  //   [walletType, wallets],
-  // );
 
   const signAndSubmit = useCallback(
     async (walletAddress, transaction) => {
@@ -461,7 +237,6 @@ export const useChat = () => {
               throw new Error("Swap route missing — please try again");
             }
 
-            // Approval for ERC20 tokens
             const isFromETH =
               transaction.tokenSymbol === "ETH" ||
               transaction.tokenSymbol?.toLowerCase().includes("eth");
@@ -498,13 +273,11 @@ export const useChat = () => {
               ],
             });
           } else {
-            // Regular transfer
             const isNativeToken = (symbol) =>
               ["ETH", "WETH"].includes(symbol?.toUpperCase()) ||
               symbol?.toLowerCase().includes("eth");
 
             if (isNativeToken(transaction.tokenSymbol)) {
-              // Native ETH transfer
               txHash = await provider.request({
                 method: "eth_sendTransaction",
                 params: [
@@ -521,9 +294,8 @@ export const useChat = () => {
                 ],
               });
             } else {
-              // ERC-20 token transfer (USDC, WETH, etc.)
               const encodeERC20Transfer = (to, amount, decimals = 6) => {
-                const selector = "0xa9059cbb"; // transfer(address,uint256)
+                const selector = "0xa9059cbb";
                 const paddedTo = to.slice(2).toLowerCase().padStart(64, "0");
                 const amountWei = BigInt(
                   Math.round(parseFloat(amount) * 10 ** decimals),
@@ -532,7 +304,6 @@ export const useChat = () => {
                 return selector + paddedTo + paddedAmount;
               };
 
-              // Token contract addresses on Sepolia
               const TOKEN_ADDRESSES = {
                 USDC: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
                 WETH: "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14",
@@ -557,8 +328,8 @@ export const useChat = () => {
                 params: [
                   {
                     from: walletAddress,
-                    to: tokenAddress, // send to token CONTRACT, not recipient
-                    value: "0x0", // ETH value is 0
+                    to: tokenAddress,
+                    value: "0x0",
                     data: encodeERC20Transfer(
                       transaction.toAddress,
                       transaction.amountHuman,
@@ -570,7 +341,6 @@ export const useChat = () => {
             }
           }
         } else {
-          // MetaMask
           const provider = window.ethereum;
           if (!provider) throw new Error("MetaMask not found");
 
@@ -617,13 +387,11 @@ export const useChat = () => {
               ],
             });
           } else {
-            // Regular transfer
             const isNativeToken = (symbol) =>
               ["ETH", "WETH"].includes(symbol?.toUpperCase()) ||
               symbol?.toLowerCase().includes("eth");
 
             if (isNativeToken(transaction.tokenSymbol)) {
-              // Native ETH transfer
               txHash = await provider.request({
                 method: "eth_sendTransaction",
                 params: [
@@ -640,9 +408,8 @@ export const useChat = () => {
                 ],
               });
             } else {
-              // ERC-20 token transfer (USDC, WETH, etc.)
               const encodeERC20Transfer = (to, amount, decimals = 6) => {
-                const selector = "0xa9059cbb"; // transfer(address,uint256)
+                const selector = "0xa9059cbb";
                 const paddedTo = to.slice(2).toLowerCase().padStart(64, "0");
                 const amountWei = BigInt(
                   Math.round(parseFloat(amount) * 10 ** decimals),
@@ -651,7 +418,6 @@ export const useChat = () => {
                 return selector + paddedTo + paddedAmount;
               };
 
-              // Token contract addresses on Sepolia
               const TOKEN_ADDRESSES = {
                 USDC: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
                 WETH: "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14",
@@ -676,8 +442,8 @@ export const useChat = () => {
                 params: [
                   {
                     from: walletAddress,
-                    to: tokenAddress, // send to token CONTRACT, not recipient
-                    value: "0x0", // ETH value is 0
+                    to: tokenAddress,
+                    value: "0x0",
                     data: encodeERC20Transfer(
                       transaction.toAddress,
                       transaction.amountHuman,
@@ -712,7 +478,7 @@ export const useChat = () => {
         console.error("Error:", err?.message);
 
         const message = userRejected
-          ? "Transaction cancelled. No funds were moved. Start a new message whenever you're ready."
+          ? `Transaction cancelled. No funds were moved. Start a new message whenever you're ready.`
           : `❌ Transaction failed: ${err instanceof Error ? err.message : "Unknown error"}`;
 
         setChatStatus(userRejected ? "idle" : "failed");
@@ -741,9 +507,6 @@ export const useChat = () => {
     [walletType, wallets],
   );
 
-  // Helper to encode ERC20 approval
-
-  // Called by confirm button (MetaMask only)
   const confirmTransaction = useCallback(
     async (walletAddress, transactionId) => {
       if (!walletAddress || !currentTransaction) return;

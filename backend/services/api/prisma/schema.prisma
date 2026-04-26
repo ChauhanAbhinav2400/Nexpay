@@ -1,0 +1,149 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  walletAddress String    @unique
+  walletType    String    // "metamask" | "privy"
+  
+  // Optional — only for Privy users
+  email         String?
+  privyUserId   String?   @unique
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  chats        Chat[]
+  contacts     Contact[]
+  transactions Transaction[]
+  contactAuditLogs ContactAuditLog[]
+  intentSessions IntentSession[]
+
+  @@index([walletAddress])
+}
+
+model Contact {
+  id            String    @id @default(cuid())
+  userId        String
+  name          String
+  walletAddress String
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions       Transaction[]
+  contactAuditLogs   ContactAuditLog[]
+
+  @@unique([userId, walletAddress])
+  @@index([userId])
+}
+
+model Chat {
+  id        String    @id @default(cuid())
+  userId    String
+  role      String    // "user" | "agent"
+  message   String
+  sessionId String    // groups one transaction conversation
+  
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([sessionId])
+}
+
+model ContactAuditLog {
+  id        String   @id @default(uuid())
+  contactId String
+  userId    String
+  action    String   // created | address_changed | name_changed | archived | restored
+  oldValue  String?  // JSON snapshot of changed field
+  newValue  String?
+  ipAddress String
+  userAgent String
+  createdAt DateTime @default(now())
+
+  contact Contact @relation(fields: [contactId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@index([contactId])
+  @@index([userId])
+}
+
+model IntentSession {
+  id                    String   @id @default(uuid())
+  userId                String
+  rawInput              String
+  parsedIntent          Json?    // IntentAction as JSON
+  confidenceScore       Float    @default(0)
+  missingFields         String[] @default([])
+  status                String   @default("processing") // processing | needs_clarification | ready_for_confirmation | confirmed | cancelled | executed | failed
+  clarificationHistory  Json     @default("[]") // ClarificationTurn[]
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@index([userId])
+}
+
+model Transaction {
+  id              String    @id @default(cuid())
+  userId          String
+  sessionId       String    // groups conversation for one transaction
+  intentSessionId String?   // optional reference to IntentSession
+  
+  mode            String    // "transfer" | "swap"
+  status          String    @default("pending_confirmation") // pending_confirmation | signed | submitted | confirmed | failed | cancelled
+
+  // Send fields
+  fromAddress     String
+  toAddress       String?
+  toContactId     String?
+  tokenSymbol     String
+  tokenAddress    String
+  amount          String    // in wei — string to avoid precision loss
+  amountHuman     String    // human-readable e.g. "20.00"
+
+  // Swap fields
+  fromTokenSymbol String?
+  toTokenSymbol   String?
+  fromAmount      String?
+  toAmountMin     String?
+  swapRoute       Json?
+
+  // Execution fields
+  txHash          String?   @unique
+  blockNumber     Int?
+  gasUsed         String?
+  gasCostUsd      Float?
+  isGasSponsored  Boolean   @default(false)
+
+  // Network
+  chainId         Int
+
+  // Timestamps
+  confirmedByUserAt   DateTime?
+  submittedAt         DateTime?
+  confirmedOnChainAt  DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  toContact       Contact?         @relation(fields: [toContactId], references: [id])
+  intentSession   IntentSession?   @relation(fields: [intentSessionId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([txHash])
+  @@index([sessionId])
+  @@index([intentSessionId])
+}

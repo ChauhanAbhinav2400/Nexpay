@@ -125,7 +125,7 @@ const Dashboard = () => {
                   confirmTransaction(walletAddress, currentTransaction.id);
                 }
               }}
-              onCancel={handleCancel} // ← add this
+              onCancel={handleCancel}
               isLoading={isLoading}
               isDisabled={!walletAddress}
               chatStatus={chatStatus}

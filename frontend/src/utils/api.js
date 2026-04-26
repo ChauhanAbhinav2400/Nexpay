@@ -1,11 +1,6 @@
 const API_BASE_URL = "http://localhost:3001";
 // const API_BASE_URL = "https://wavelet-api.onrender.com";
 
-/**
- * Process intent from user message
- * POST /api/intent/process
- * Sends wallet-centric intent with chat history
- */
 export const processIntent = async (walletAddress, message, sessionId) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/intent/process`, {
@@ -31,11 +26,6 @@ export const processIntent = async (walletAddress, message, sessionId) => {
   }
 };
 
-/**
- * Get chat history
- * GET /api/chat/history
- * Fetch conversation history
- */
 export const getChatHistory = async (walletAddress, sessionId) => {
   try {
     const params = new URLSearchParams({ walletAddress });
@@ -59,10 +49,6 @@ export const getChatHistory = async (walletAddress, sessionId) => {
   }
 };
 
-/**
- * Create a new contact
- * POST /api/contacts
- */
 export const createContact = async (walletAddress, name, contactAddress) => {
   try {
     const response = await fetch(
@@ -90,10 +76,6 @@ export const createContact = async (walletAddress, name, contactAddress) => {
   }
 };
 
-/**
- * Get user's contacts
- * GET /api/contacts
- */
 export const getContacts = async (walletAddress) => {
   try {
     const response = await fetch(
@@ -117,11 +99,6 @@ export const getContacts = async (walletAddress) => {
   }
 };
 
-/**
- * Execute transaction
- * POST /api/transactions/execute
- * Submit transaction for execution
- */
 export const confirmTransactionApi = async (transactionId, txHash) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/transactions/execute`, {
@@ -137,10 +114,6 @@ export const confirmTransactionApi = async (transactionId, txHash) => {
   }
 };
 
-/**
- * Update a contact
- * PUT /api/contacts/:id
- */
 export const updateContact = async (
   walletAddress,
   contactId,
@@ -173,10 +146,6 @@ export const updateContact = async (
   }
 };
 
-/**
- * Delete a contact
- * DELETE /api/contacts/:id
- */
 export const deleteContact = async (walletAddress, contactId) => {
   try {
     const response = await fetch(
@@ -200,10 +169,6 @@ export const deleteContact = async (walletAddress, contactId) => {
   }
 };
 
-/**
- * Prepare transaction
- * POST /api/transactions/prepare
- */
 export const prepareTransaction = async (sessionId) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/transactions/prepare`, {
@@ -219,10 +184,6 @@ export const prepareTransaction = async (sessionId) => {
   }
 };
 
-/**
- * Confirm transaction
- * POST /api/transactions/confirm
- */
 export const getAllChatSessions = async (walletAddress) => {
   const response = await fetch(
     `${API_BASE_URL}/api/chat/sessions?walletAddress=${walletAddress}`,
