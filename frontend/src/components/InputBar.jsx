@@ -4,35 +4,30 @@ import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
 const InputBar = ({
   onSend,
   onConfirm,
+  onCancel,
   isLoading,
   isDisabled,
   chatStatus,
   hasTransaction = false,
-  initialTranscript = "",
 }) => {
   const [inputValue, setInputValue] = useState("");
-  const { isListening, transcript, startListening } = useSpeechRecognition();
+  const { isListening, transcript, startListening, resetTranscript } =
+    useSpeechRecognition();
   const recognitionRef = useRef(null);
   const textareaRef = useRef(null);
 
   useEffect(() => {
-    if (transcript && !inputValue) {
-      setInputValue(transcript);
+    if (transcript) {
+      setInputValue(transcript); // always update input with latest transcript
     }
-  }, [transcript, inputValue]);
-
-  useEffect(() => {
-    if (initialTranscript && !inputValue) {
-      setInputValue(initialTranscript);
-    }
-  }, [initialTranscript, inputValue]);
+  }, [transcript]);
 
   const handleSend = (e) => {
     e.preventDefault();
     if (inputValue.trim() && !isLoading && !isDisabled) {
       onSend(inputValue);
       setInputValue("");
-
+      resetTranscript(); // clear transcript too
       if (textareaRef.current) {
         textareaRef.current.style.height = "auto";
       }
@@ -41,17 +36,17 @@ const InputBar = ({
 
   const handleConfirm = (e) => {
     e.preventDefault();
-    if (onConfirm) {
-      onConfirm();
-      setInputValue("");
-    }
+    if (onConfirm) onConfirm();
+  };
+
+  const handleCancel = (e) => {
+    e.preventDefault();
+    if (onCancel) onCancel();
   };
 
   const handleMicClick = () => {
     if (isListening) {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
+      if (recognitionRef.current) recognitionRef.current.stop();
     } else {
       startListening();
     }
@@ -59,7 +54,8 @@ const InputBar = ({
 
   const handleTextChange = (e) => {
     setInputValue(e.target.value);
-
+    // If user clears input, also reset transcript
+    if (e.target.value === "") resetTranscript();
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
       textareaRef.current.style.height =
@@ -67,11 +63,19 @@ const InputBar = ({
     }
   };
 
-  // Show confirm only when ready for confirmation
+  // Show confirm + cancel when ready for confirmation
   if (hasTransaction && chatStatus === "ready_for_confirmation") {
     return (
-      <form className="sticky bottom-0 bg-slate-900 border-t border-slate-700 p-4">
+      <div className="sticky bottom-0 bg-slate-900 border-t border-slate-700 p-4">
         <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={handleCancel}
+            disabled={isLoading}
+            className="flex-1 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white rounded-lg px-4 py-2 font-semibold transition-colors"
+          >
+            Cancel
+          </button>
           <button
             type="button"
             onClick={handleConfirm}
@@ -81,11 +85,10 @@ const InputBar = ({
             {isLoading ? "Submitting..." : "Confirm & Execute"}
           </button>
         </div>
-      </form>
+      </div>
     );
   }
 
-  // Normal input bar
   return (
     <form
       onSubmit={handleSend}
@@ -104,6 +107,12 @@ const InputBar = ({
           }
           className="flex-1 bg-slate-800 text-white rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-purple-500 resize-none disabled:opacity-50"
           rows="1"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleSend(e);
+            }
+          }}
         />
 
         <button

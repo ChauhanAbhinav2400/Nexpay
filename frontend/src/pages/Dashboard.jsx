@@ -8,7 +8,7 @@ import { useWallet } from "../context/WalletContext";
 import { useChat } from "../hooks/useChat";
 import { saveChat, getChatById } from "../utils/localStorage";
 import { getChatHistory } from "../utils/api.js";
-
+import { saveChatMessageApi } from "../utils/api.js";
 const Dashboard = () => {
   const { walletAddress, walletType } = useWallet();
   const {
@@ -32,7 +32,27 @@ const Dashboard = () => {
     chatStatus === "success" || chatStatus === "failed";
   const isReadOnly = viewingChatId !== null;
 
-  // Save current chat
+  const handleCancel = useCallback(async () => {
+    await saveChatMessageApi(
+      walletAddress,
+      "agent",
+      "Transaction cancelled. No funds were moved. Start a new message whenever you're ready.",
+      sessionId,
+    );
+    startNewChat();
+  }, [walletAddress, sessionId, startNewChat]);
+
+  useEffect(() => {
+    if (chatStatus === "success" || chatStatus === "failed") {
+      const timer = setTimeout(() => {
+        startNewChat();
+
+        window.location.reload();
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [chatStatus]);
+
   useEffect(() => {
     if (sessionId && messages.length > 0) {
       const chat = {
@@ -105,6 +125,7 @@ const Dashboard = () => {
                   confirmTransaction(walletAddress, currentTransaction.id);
                 }
               }}
+              onCancel={handleCancel} // ← add this
               isLoading={isLoading}
               isDisabled={!walletAddress}
               chatStatus={chatStatus}
