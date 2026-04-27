@@ -6,20 +6,19 @@
     "packages/*",
     "services/*"
   ],
+  "devDependencies": {
+    "turbo": "^2.4.0",
+    "typescript": "^5.7.0"
+  },
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
-    "lint": "turbo run lint",
-    "test": "turbo run test",
+    "start": "node services/api/dist/index.js",
     "start:api": "node services/api/dist/index.js",
     "db:generate": "npm run generate --workspace=services/api",
     "db:migrate": "npm run migrate --workspace=services/api",
     "db:migrate:deploy": "npx prisma migrate deploy --schema=services/api/prisma/schema.prisma",
     "db:seed": "npm run seed --workspace=services/api"
-  },
-  "devDependencies": {
-    "turbo": "^2.4.0",
-    "typescript": "^5.7.0"
   },
   "engines": {
     "node": ">=20.0.0"

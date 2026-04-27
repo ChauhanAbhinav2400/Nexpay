@@ -12,7 +12,6 @@ const updateContactSchema = z.object({
 });
 
 export async function contactRoutes(app: FastifyInstance) {
-  // POST /contacts — create a new contact
   app.post<{
     Body: z.infer<typeof createContactSchema>;
     Querystring: { walletAddress: string };
@@ -64,7 +63,6 @@ export async function contactRoutes(app: FastifyInstance) {
     },
   });
 
-  // GET /contacts — list user's contacts
   app.get<{
     Querystring: { walletAddress: string };
   }>("/", {
@@ -92,7 +90,6 @@ export async function contactRoutes(app: FastifyInstance) {
     },
   });
 
-  // PUT /contacts/:id — update contact
   app.put<{
     Params: { id: string };
     Body: z.infer<typeof updateContactSchema>;
@@ -137,7 +134,6 @@ export async function contactRoutes(app: FastifyInstance) {
     },
   });
 
-  // DELETE /contacts/:id — delete contact
   app.delete<{
     Params: { id: string };
     Querystring: { walletAddress: string };
