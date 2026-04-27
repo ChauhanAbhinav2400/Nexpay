@@ -1,0 +1,36 @@
+{
+  "name": "NexPay",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "services/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "start:api": "node services/api/dist/index.js",
+    "db:generate": "npm run generate --workspace=services/api",
+    "db:migrate": "npm run migrate --workspace=services/api",
+    "db:migrate:deploy": "npx prisma migrate deploy --schema=services/api/prisma/schema.prisma",
+    "db:seed": "npm run seed --workspace=services/api"
+  },
+  "devDependencies": {
+    "turbo": "^2.4.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "npm@10.0.0",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@uniswap/sdk-core": "^7.13.0",
+    "@uniswap/v3-sdk": "^3.30.0",
+    "dotenv": "^17.4.1",
+    "ethers": "^6.16.0",
+    "groq-sdk": "^1.1.2"
+  }
+}

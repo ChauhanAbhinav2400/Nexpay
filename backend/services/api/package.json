@@ -1,0 +1,37 @@
+{
+  "name": "@wavelet/api",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "generate": "prisma generate",
+    "migrate": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy",
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.82.0",
+    "@fastify/cors": "^10.0.0",
+    "@fastify/helmet": "^13.0.0",
+    "@fastify/rate-limit": "^10.2.0",
+    "@prisma/client": "^6.4.0",
+    "@privy-io/node": "^0.12.0",
+    "@sentry/node": "^10.47.0",
+    "dotenv": "^16.4.5",
+    "fastify": "^5.2.0",
+    "jose": "^6.0.0",
+    "resend": "^6.10.0",
+    "viem": "^2.47.10",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "autocannon": "^8.0.0",
+    "prisma": "^6.4.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}

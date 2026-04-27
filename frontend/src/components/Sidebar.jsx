@@ -62,7 +62,13 @@ const Sidebar = ({ onNewTransaction, onSelectChat, currentChatId }) => {
                 <div className="text-xs font-medium truncate">
                   {chat.preview || "Untitled"}
                 </div>
-                <div className="text-xs text-slate-500 mt-1">
+                <div
+                  className={`text-xs  mt-1 ${
+                    currentChatId === chat.sessionId
+                      ? "text-white"
+                      : "text-slate-500"
+                  }`}
+                >
                   {formatDate(chat.timestamp)}
                 </div>
               </button>
