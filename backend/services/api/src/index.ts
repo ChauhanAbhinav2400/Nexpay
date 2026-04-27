@@ -80,8 +80,8 @@ process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
 
 // Start
-const port = parseInt(process.env.PORT ?? "3001", 10);
-const host = process.env.HOST ?? "0.0.0.0";
+const port = parseInt(process.env.PORT!, 10);
+const host = "0.0.0.0";
 
 try {
   await app.listen({ port, host });
