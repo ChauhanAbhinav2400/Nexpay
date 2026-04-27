@@ -5,10 +5,8 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
-
+import { API_BASE_URL } from "../utils/api.js";
 const WalletContext = createContext();
-
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 export const WalletProvider = ({ children }) => {
   const [walletAddress, setWalletAddress] = useState(null);
@@ -42,7 +40,7 @@ export const WalletProvider = ({ children }) => {
         throw new Error("Wallet address is required");
       }
 
-      const response = await fetch(`${API_BASE}/api/auth`, {
+      const response = await fetch(`${API_BASE_URL}/api/auth`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -1,5 +1,5 @@
-const API_BASE_URL = "http://localhost:3001";
-// const API_BASE_URL = "https://wavelet-api.onrender.com";
+// const API_BASE_URL = "http://localhost:3000";
+export const API_BASE_URL = "https://nexpay-production.up.railway.app";
 
 export const processIntent = async (walletAddress, message, sessionId) => {
   try {
