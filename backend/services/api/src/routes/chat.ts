@@ -36,7 +36,7 @@ export async function chatRoutes(app: FastifyInstance) {
       }
       const chat = await saveChatMessage(
         walletAddress,
-        role,
+        role as "user" | "agent",
         message,
         sessionId,
       );
