@@ -9,7 +9,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import {
   getUniswapQuote,
-  buildSwapCalldata,
+  buildSwapCalldata
   SWAP_ROUTER_ADDRESS,
 } from "../services/swap/uniswap.js";
 

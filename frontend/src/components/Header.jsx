@@ -13,9 +13,9 @@ const Header = ({ onContactsClick }) => {
     <header className="bg-slate-900 border-b border-slate-700 px-6 py-4 flex items-center justify-between">
       <div className="flex items-center gap-2">
         <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
-          <span className="text-white font-bold text-sm">W</span>
+          <span className="text-white font-bold text-sm">N</span>
         </div>
-        <h1 className="text-xl font-bold text-white">WalletAgent</h1>
+        <h1 className="text-xl font-bold text-white">NexPay</h1>
       </div>
 
       <div className="flex items-center gap-4">
