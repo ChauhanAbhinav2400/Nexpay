@@ -36,7 +36,7 @@ const Sidebar = ({ onNewTransaction, onSelectChat, currentChatId }) => {
     <aside className="w-64 bg-slate-950 border-r border-slate-700 flex flex-col p-4">
       <button
         onClick={onNewTransaction}
-        className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg mb-6 transition-colors"
+        className="w-full bg-purple-600 cursor-pointer hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg mb-6 transition-colors"
       >
         + New Transaction
       </button>

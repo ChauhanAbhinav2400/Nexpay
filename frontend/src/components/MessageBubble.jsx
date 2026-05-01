@@ -22,7 +22,6 @@ const MessageBubble = ({ message }) => {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
   };
 
-  // Detect swap details message
   const isSwapDetails = message.content?.startsWith("SWAP_DETAILS:");
   let swapDetails = null;
   if (isSwapDetails) {
@@ -31,23 +30,62 @@ const MessageBubble = ({ message }) => {
     } catch {}
   }
 
+  const isTransferDetails = message.content?.startsWith("TRANSFER_DETAILS:");
+  let transferDetails = null;
+  if (isTransferDetails) {
+    try {
+      transferDetails = JSON.parse(
+        message.content.replace("TRANSFER_DETAILS:", ""),
+      );
+    } catch {}
+  }
+
+  // Add this helper inside your component (above renderContent)
+  const renderMessageWithLinks = (text) => {
+    if (!text) return null;
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = text.split(urlRegex);
+
+    return parts.map((part, index) =>
+      urlRegex.test(part) ? (
+        <a
+          key={index}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline hover:text-green-200 font-semibold break-all"
+        >
+          {part}
+        </a>
+      ) : (
+        <span key={index}>{part}</span>
+      ),
+    );
+  };
+
   const renderContent = () => {
-    // Success with txHash
     if (message.type === "success" && message.txHash) {
       return (
         <div>
-          <p className="text-sm mb-2">{message.content}</p>
-          <p className="text-xs">
-            ✅ Success! View on{" "}
-            <a>
-              href=
-              {message.explorerUrl ||
-                `https://etherscan.io/tx/${message.txHash}`}
-              target="_blank" rel="noopener noreferrer" className="underline
-              hover:text-green-200 font-semibold" Explorer:{" "}
-              {shortenAddress(message.txHash)}
-            </a>
-          </p>
+          {message.explorerUrl || message.txHash ? (
+            <>
+              <p className="text-sm mb-2">✅ Transaction successful!</p>
+
+              <a
+                href={
+                  message.explorerUrl ||
+                  `https://etherscan.io/tx/${message.txHash}`
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs underline hover:text-green-200 font-semibold cursor-pointer"
+              >
+                View on Explorer: {shortenAddress(message.txHash)}
+              </a>
+            </>
+          ) : (
+            <p className="text-sm">{message.content}</p>
+          )}
         </div>
       );
     }
@@ -62,7 +100,6 @@ const MessageBubble = ({ message }) => {
       );
     }
 
-    // Swap details preview card
     if (isSwapDetails && swapDetails) {
       return (
         <div>
@@ -104,7 +141,50 @@ const MessageBubble = ({ message }) => {
       );
     }
 
-    // Transaction details (old txData format)
+    if (isTransferDetails && transferDetails) {
+      return (
+        <div>
+          <p className="text-sm font-semibold mb-3">📤 Transfer Preview</p>
+          <div className="bg-slate-800 rounded-lg p-3 space-y-2 text-xs">
+            <div className="flex justify-between items-center">
+              <span className="text-slate-400">To</span>
+              <span className="font-semibold text-white">
+                {transferDetails.toContactName || "Direct Address"}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-slate-400">Address</span>
+              <span className="text-slate-200 font-mono">
+                {transferDetails.toAddress?.slice(0, 6)}...
+                {transferDetails.toAddress?.slice(-4)}
+              </span>
+            </div>
+            <div className="border-t border-slate-600 my-1" />
+            <div className="flex justify-between items-center">
+              <span className="text-slate-400">Amount</span>
+              <span className="font-semibold text-green-400">
+                {transferDetails.amount} {transferDetails.token}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-slate-400">Network</span>
+              <span className="text-purple-400">{transferDetails.network}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-slate-400">From</span>
+              <span className="text-slate-200 font-mono">
+                {transferDetails.fromAddress?.slice(0, 6)}...
+                {transferDetails.fromAddress?.slice(-4)}
+              </span>
+            </div>
+          </div>
+          <p className="text-xs text-slate-400 mt-2 text-center">
+            Review and confirm below ↓
+          </p>
+        </div>
+      );
+    }
+
     if (message.txData) {
       return (
         <div>
@@ -139,7 +219,6 @@ const MessageBubble = ({ message }) => {
       );
     }
 
-    // TxHash in content
     if (message.content?.includes("TxHash:")) {
       return (
         <div className="text-sm">
@@ -150,9 +229,12 @@ const MessageBubble = ({ message }) => {
         </div>
       );
     }
-
-    // Default
-    return <p className="text-sm break-words">{message.content}</p>;
+    // AFTER
+    return (
+      <p className="text-sm break-words">
+        {renderMessageWithLinks(message.content)}
+      </p>
+    );
   };
 
   return (

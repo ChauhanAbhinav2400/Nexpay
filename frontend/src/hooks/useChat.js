@@ -108,7 +108,19 @@ export const useChat = () => {
               ).toFixed(6),
             })}`;
           } else {
-            content = `Ready to transfer ${tx.amountHuman} ${tx.tokenSymbol} to ${tx.toAddress}. Please confirm.`;
+            content = `TRANSFER_DETAILS:${JSON.stringify({
+              toAddress: tx.toAddress,
+              toContactName: tx.toContactName || null,
+              amount: tx.amountHuman,
+              token: tx.tokenSymbol,
+              fromAddress: tx.fromAddress,
+              network:
+                tx.chainId === 11155111
+                  ? "Sepolia Testnet"
+                  : tx.chainId === 8453
+                    ? "Base"
+                    : "Ethereum",
+            })}`;
           }
 
           setMessages((prev) => [
