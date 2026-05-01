@@ -7,7 +7,7 @@
     "services/*"
   ],
   "scripts": {
-    "build": "turbo run build && npx prisma generate --schema=services/api/prisma/schema.prisma",
+    "build": "npm install && npx tsc && npx prisma generate --schema=services/api/prisma/schema.prisma",
     "start": "node services/api/dist/index.js",
     "start:api": "node services/api/dist/index.js",
     "db:generate": "npm run generate --workspace=services/api",
