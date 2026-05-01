@@ -1,5 +1,5 @@
-export const API_BASE_URL = "http://localhost:3000";
-// export const API_BASE_URL = "https://nexpay-api.onrender.com";
+// export const API_BASE_URL = "http://localhost:3000";
+export const API_BASE_URL = "https://nexpay-0ln0.onrender.com";
 
 export const processIntent = async (walletAddress, message, sessionId) => {
   try {
